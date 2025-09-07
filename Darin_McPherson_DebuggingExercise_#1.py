@@ -1,0 +1,274 @@
+#Brief Description:
+#This program reads a collection of products, validates and sanitizes each products price
+#and discount rate, calculates the discount and final price, then prints a clear, well-formatted
+#summary for each product. Inputs can be numeric or strings (including "$" and "," in prices,
+#and percent strings like "20%"). Invalid values are safely handled without crashing.
+
+# Import typing helpers for annotations
+from typing import Any, Tuple, List
+
+# ------------------------------------------------------------
+# CONSTANTS (All caps per convention)
+# ------------------------------------------------------------
+
+# Minimum valid discount rate
+MIN_RATE: float = 0.0
+
+# Maximum valid discount rate
+MAX_RATE: float = 1.0
+
+# Default value used when a price cannot be parsed
+DEFAULT_PRICE: float = 0.0
+
+# Default value used when a discount rate cannot be parsed
+DEFAULT_RATE: float = 0.0
+
+# Currency symbol used for display
+CURRENCY_SYMBOL: str = "$"
+
+
+# ------------------------------------------------------------
+# calculate_discount
+# Returns the discount amount (price * discount_rate).
+# ------------------------------------------------------------
+def calculate_discount(price: float, discount_rate: float) -> float:
+    # Multiply price by the discount rate to get the discount amount
+    discount_amount: float = price * discount_rate
+
+    # Return the computed discount amount
+    return discount_amount
+
+
+# ------------------------------------------------------------
+# apply_discount
+# Returns a new price after subtracting the discount amount.
+# ------------------------------------------------------------
+def apply_discount(price: float, discount_amount: float) -> float:
+    # Subtract the discount from the original price
+    new_price: float = price - discount_amount
+
+    # Return the final price
+    return new_price
+
+
+# ------------------------------------------------------------
+# money
+# Formats a float value into a currency string like "$1,234.56".
+# ------------------------------------------------------------
+def money(value: float) -> str:
+    # Format and return the value as money
+    return f"{CURRENCY_SYMBOL}{value:,.2f}"
+
+
+# ------------------------------------------------------------
+# parse_price
+# Converts the input to a non-negative float price.
+# Accepts numbers and strings like "$1,299.99".
+# Returns a (price, notes) tuple, where notes explain any fixes.
+# ------------------------------------------------------------
+def parse_price(value: Any) -> Tuple[float, List[str]]:
+    # Initialize a list to hold any notes about coercions
+    notes: List[str] = []
+
+    # Initialize price with a safe default
+    price: float = DEFAULT_PRICE
+
+    # If the value is already numeric, cast directly to float
+    if isinstance(value, (int, float)):
+        # Cast numeric to float
+        price = float(value)
+
+    # If the value is a string, attempt to clean and convert
+    elif isinstance(value, str):
+        # Remove commas and currency symbols, then strip whitespace
+        cleaned: str = value.strip().replace(",", "").replace("$", "")
+
+        # Attempt to convert the cleaned string to float
+        try:
+            price = float(cleaned)
+        except ValueError:
+            # On failure, record a note and keep default price
+            notes.append(f"Price '{value}' not numeric; defaulted to {money(DEFAULT_PRICE)}")
+
+    # For unsupported types, record a note and keep default price
+    else:
+        # Record the unsupported type
+        notes.append(f"Unsupported price type {type(value).__name__}; defaulted to {money(DEFAULT_PRICE)}")
+
+    # If the parsed price is negative, coerce to positive and note it
+    if price < 0:
+        # Record that we corrected a negative value
+        notes.append("Negative price coerced to absolute value.")
+
+        # Convert to absolute value
+        price = abs(price)
+
+    # Return the validated price and any notes
+    return price, notes
+
+
+# ------------------------------------------------------------
+# parse_discount_rate
+# Converts the input into a discount rate within [MIN_RATE, MAX_RATE].
+# Accepts numbers, "0.2", or "20%".
+# Returns a (rate, notes) tuple, where notes explain any fixes.
+# ------------------------------------------------------------
+def parse_discount_rate(value: Any) -> Tuple[float, List[str]]:
+    # Initialize a list to hold any notes about coercions
+    notes: List[str] = []
+
+    # Initialize rate with a safe default
+    rate: float = DEFAULT_RATE
+
+    # If the value is numeric, cast directly
+    if isinstance(value, (int, float)):
+        # Cast numeric to float
+        rate = float(value)
+
+    # If the value is a string, attempt to interpret it
+    elif isinstance(value, str):
+        # Remove leading/trailing whitespace
+        text: str = value.strip()
+
+        # Attempt to handle percent strings or plain numbers
+        try:
+            # If it ends with "%", interpret it as a percent
+            if text.endswith("%"):
+                # Convert "20%" to 0.20
+                rate = float(text[:-1]) / 100.0
+
+            # Otherwise, interpret it as a regular number
+            else:
+                rate = float(text)
+
+        # If conversion fails, keep default and note it
+        except ValueError:
+            # Record that the input could not be parsed
+            notes.append(f"Discount rate '{value}' not numeric; defaulted to {DEFAULT_RATE:.0%}")
+
+    # For unsupported types, record a note and keep default
+    else:
+        # Record unsupported type
+        notes.append(f"Unsupported discount_rate type {type(value).__name__}; defaulted to {DEFAULT_RATE:.0%}")
+
+    # Clamp the rate to the valid interval [MIN_RATE, MAX_RATE]
+    clamped: float = min(MAX_RATE, max(MIN_RATE, rate))
+
+    # If clamping changed the value, record a note
+    if clamped != rate:
+        notes.append(f"Discount rate {rate} clamped to {clamped} (valid range {MIN_RATE}–{MAX_RATE}).")
+
+    # Return the clamped rate and any notes
+    return clamped, notes
+
+
+# ------------------------------------------------------------
+# process_product
+# Validates inputs, computes discount and final price, and prints results.
+# ------------------------------------------------------------
+def process_product(product: dict) -> None:
+    # Get the product name (default if missing)
+    name: str = product.get("name", "<Unnamed Product>")
+
+    # Parse and sanitize the price
+    price, price_notes = parse_price(product.get("price"))
+
+    # Parse and sanitize the discount rate
+    rate, rate_notes = parse_discount_rate(product.get("discount_rate"))
+
+    # Calculate the discount amount
+    discount_amount: float = calculate_discount(price, rate)
+
+    # Compute the final price after applying the discount
+    final_price: float = apply_discount(price, discount_amount)
+
+    # Print the product header
+    print(f"Product: {name}")
+
+    # Print the formatted original price
+    print(f"  Original Price : {money(price)}")
+
+    # Print the discount rate as a percentage
+    print(f"  Discount Rate  : {rate:.0%}")
+
+    # Print the formatted discount amount
+    print(f"  Discount Amount: {money(discount_amount)}")
+
+    # Print the formatted final price
+    print(f"  Final Price    : {money(final_price)}")
+
+    # Combine any notes and print them for transparency
+    notes: List[str] = price_notes + rate_notes
+    if notes:
+        # Print each note on its own line
+        for note in notes:
+            print(f"  Note: {note}")
+
+    # Print a blank line to separate products
+    print()
+
+
+# ------------------------------------------------------------
+# get_sample_products
+# Returns a list of example products for demonstration and testing.
+# ------------------------------------------------------------
+def get_sample_products() -> List[dict]:
+    # Create and return a sample product list
+    return [
+        {"name": "Laptop", "price": 1000, "discount_rate": 0.10},
+        {"name": "Smartphone", "price": 800, "discount_rate": 0.15},
+        {"name": "Tablet", "price": "500", "discount_rate": "20%"},
+        {"name": "Headphones", "price": 200, "discount_rate": 0.05},
+    ]
+
+
+# ------------------------------------------------------------
+# main
+# Entry point: initializes variables, iterates products, and displays results.
+# ------------------------------------------------------------
+def main() -> None:
+    # Initialize accumulator variables for reporting (example of initialization)
+    total_items: int = 0
+
+    # Initialize totals for money-related values
+    total_original: float = 0.0
+    total_discount: float = 0.0
+    total_final: float = 0.0
+
+    # Retrieve a list of products to process
+    products: List[dict] = get_sample_products()
+
+    # Iterate over each product and process it
+    for product in products:
+        # Extract safe price and rate to update totals
+        price, _ = parse_price(product.get("price"))
+        rate, _ = parse_discount_rate(product.get("discount_rate"))
+
+        # Calculate discount and final price for totals
+        discount_amount: float = calculate_discount(price, rate)
+        final_price: float = apply_discount(price, discount_amount)
+
+        # Print a detailed breakdown for the current product
+        process_product(product)
+
+        # Update counters and accumulators
+        total_items += 1
+        total_original += price
+        total_discount += discount_amount
+        total_final += final_price
+
+    # Print a small summary report after all items
+    print("Summary")
+    print("-------")
+    print(f"Items processed : {total_items}")
+    print(f"Total original  : {money(total_original)}")
+    print(f"Total discount  : {money(total_discount)}")
+    print(f"Total final     : {money(total_final)}")
+
+
+# ------------------------------------------------------------
+# __main__ guard
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    # Run the main function when executed as a script
+    main()
