@@ -1,0 +1,79 @@
+<html>
+<head>
+<title>DarinMcPherson_VersionControlExercise_#1.1.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #bcbec4;}
+.s4 { color: #2aacb8;}
+.s5 { color: #5f826b; font-style: italic;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+DarinMcPherson_VersionControlExercise_#1.1.py</font>
+</center></td></tr></table>
+<pre><span class="s0"># Darin McPherson</span>
+<span class="s0"># 09/14/2025</span>
+<span class="s0"># Cinema Ticket Pre-Sale</span>
+<span class="s0"># - 2 functions (prompt_tickets, run_presale)</span>
+<span class="s0"># - uses input/output</span>
+<span class="s0"># - accumulator: buyers count</span>
+<span class="s0"># - if statements for validation</span>
+<span class="s0"># - loop until sold out</span>
+
+<span class="s2">from </span><span class="s1">typing </span><span class="s2">import </span><span class="s1">Optional</span>
+
+<span class="s1">MAX_TOTAL </span><span class="s3">= </span><span class="s4">10            </span><span class="s0"># CHANGED: was 20</span>
+<span class="s1">MAX_PER_BUYER </span><span class="s3">= </span><span class="s4">4</span>
+
+
+<span class="s2">def </span><span class="s1">prompt_tickets</span><span class="s3">(</span><span class="s1">remaining</span><span class="s3">: </span><span class="s1">int</span><span class="s3">, </span><span class="s1">max_per_buyer</span><span class="s3">: </span><span class="s1">int</span><span class="s3">) </span><span class="s1">-&gt; int</span><span class="s3">:</span>
+    <span class="s5">&quot;&quot;&quot;Prompt one buyer for a valid purchase quantity and return it.&quot;&quot;&quot;</span>
+    <span class="s1">limit </span><span class="s3">= </span><span class="s1">min</span><span class="s3">(</span><span class="s1">max_per_buyer</span><span class="s3">, </span><span class="s1">remaining</span><span class="s3">)</span>
+
+    <span class="s2">while True</span><span class="s3">:  </span><span class="s0"># loop until this buyer enters a valid number</span>
+        <span class="s2">try</span><span class="s3">:</span>
+            <span class="s1">qty </span><span class="s3">= </span><span class="s1">int</span><span class="s3">(</span><span class="s1">input</span><span class="s3">(</span><span class="s6">f&quot;How many tickets would you like (1–</span><span class="s2">{</span><span class="s1">limit</span><span class="s2">}</span><span class="s6">)? &quot;</span><span class="s3">))</span>
+        <span class="s2">except </span><span class="s1">ValueError</span><span class="s3">:</span>
+            <span class="s1">print</span><span class="s3">(</span><span class="s6">&quot;Please enter a whole number.&quot;</span><span class="s3">)</span>
+            <span class="s2">continue</span>
+
+        <span class="s0"># validations (if statements)</span>
+        <span class="s2">if </span><span class="s1">qty </span><span class="s3">&lt; </span><span class="s4">1</span><span class="s3">:</span>
+            <span class="s1">print</span><span class="s3">(</span><span class="s6">&quot;You must buy at least 1 ticket.&quot;</span><span class="s3">)</span>
+        <span class="s2">elif </span><span class="s1">qty </span><span class="s3">&gt; </span><span class="s1">max_per_buyer</span><span class="s3">:</span>
+            <span class="s1">print</span><span class="s3">(</span><span class="s6">f&quot;You can buy at most </span><span class="s2">{</span><span class="s1">max_per_buyer</span><span class="s2">} </span><span class="s6">tickets per buyer.&quot;</span><span class="s3">)</span>
+        <span class="s2">elif </span><span class="s1">qty </span><span class="s3">&gt; </span><span class="s1">remaining</span><span class="s3">:</span>
+            <span class="s1">print</span><span class="s3">(</span><span class="s6">f&quot;Only </span><span class="s2">{</span><span class="s1">remaining</span><span class="s2">} </span><span class="s6">tickets remain. Please enter </span><span class="s2">{</span><span class="s1">remaining</span><span class="s2">} </span><span class="s6">or less.&quot;</span><span class="s3">)</span>
+        <span class="s2">else</span><span class="s3">:</span>
+            <span class="s2">return </span><span class="s1">qty  </span><span class="s0"># valid</span>
+
+
+<span class="s2">def </span><span class="s1">run_presale</span><span class="s3">(</span><span class="s1">total</span><span class="s3">: </span><span class="s1">int </span><span class="s3">= </span><span class="s1">MAX_TOTAL</span><span class="s3">, </span><span class="s1">max_per_buyer</span><span class="s3">: </span><span class="s1">int </span><span class="s3">= </span><span class="s1">MAX_PER_BUYER</span><span class="s3">) </span><span class="s1">-&gt; </span><span class="s2">None</span><span class="s3">:</span>
+    <span class="s5">&quot;&quot;&quot;Run the ticket selling loop until sold out, then show buyer count.&quot;&quot;&quot;</span>
+    <span class="s1">remaining </span><span class="s3">= </span><span class="s1">total</span>
+    <span class="s1">buyers </span><span class="s3">= </span><span class="s4">0  </span><span class="s0"># ACCUMULATOR for number of buyers</span>
+
+    <span class="s1">print</span><span class="s3">(</span><span class="s6">&quot;Welcome to the Cinema Ticket Pre-Sale!&quot;</span><span class="s3">)</span>
+
+    <span class="s2">while </span><span class="s1">remaining </span><span class="s3">&gt; </span><span class="s4">0</span><span class="s3">:  </span><span class="s0"># loop until sold out</span>
+        <span class="s1">print</span><span class="s3">(</span><span class="s6">f&quot;</span><span class="s2">\n</span><span class="s6">Tickets remaining: </span><span class="s2">{</span><span class="s1">remaining</span><span class="s2">}</span><span class="s6">&quot;</span><span class="s3">)</span>
+        <span class="s1">qty </span><span class="s3">= </span><span class="s1">prompt_tickets</span><span class="s3">(</span><span class="s1">remaining</span><span class="s3">, </span><span class="s1">max_per_buyer</span><span class="s3">)</span>
+        <span class="s1">remaining </span><span class="s3">-= </span><span class="s1">qty</span>
+        <span class="s1">buyers </span><span class="s3">+= </span><span class="s4">1</span>
+        <span class="s1">print</span><span class="s3">(</span><span class="s6">f&quot;Purchase successful: </span><span class="s2">{</span><span class="s1">qty</span><span class="s2">} </span><span class="s6">ticket(s). Tickets remaining: </span><span class="s2">{</span><span class="s1">remaining</span><span class="s2">}</span><span class="s6">&quot;</span><span class="s3">)</span>
+
+    <span class="s1">print</span><span class="s3">(</span><span class="s6">&quot;</span><span class="s2">\n</span><span class="s6">SOLD OUT!&quot;</span><span class="s3">)</span>
+    <span class="s1">print</span><span class="s3">(</span><span class="s6">f&quot;Total number of buyers: </span><span class="s2">{</span><span class="s1">buyers</span><span class="s2">}</span><span class="s6">&quot;</span><span class="s3">)</span>
+
+
+<span class="s2">if </span><span class="s1">__name__ </span><span class="s3">== </span><span class="s6">&quot;__main__&quot;</span><span class="s3">:</span>
+    <span class="s1">run_presale</span><span class="s3">()</span></pre>
+</body>
+</html>
