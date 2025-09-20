@@ -1,0 +1,114 @@
+# Darin McPherson
+# 09/20/2025
+# Spam Scanner
+# Ask the user for an email message, scan it for 30 common spam words/phrases,
+# count all matches to produce a spam score, rate how spammy it looks, and show
+# which terms triggered the score.
+
+import re
+from collections import Counter
+from typing import Dict, List, Pattern, Tuple
+
+# 30 common spam keywords/phrases (case-insensitive).
+SPAM_TERMS: List[str] = [
+    "free",
+    "win",
+    "winner",
+    "congratulations",
+    "claim now",
+    "act now",
+    "limited time",
+    "urgent",
+    "risk-free",
+    "guarantee",
+    "100% free",
+    "no obligation",
+    "no credit check",
+    "pre-approved",
+    "lowest price",
+    "cheap meds",
+    "viagra",
+    "cialis",
+    "weight loss",
+    "work from home",
+    "make money fast",
+    "earn per week",
+    "investment opportunity",
+    "bitcoin",
+    "crypto",
+    "loan",
+    "mortgage",
+    "click here",
+    "unsubscribe",
+    "call now",
+]
+
+def build_patterns(terms: List[str]) -> Dict[str, Pattern]:
+    """
+    Compile a regex for each term.
+    - Spaces match flexibly (one or more whitespace).
+    - Word boundaries reduce partial matches.
+    """
+    out: Dict[str, Pattern] = {}
+    for term in terms:
+        tokens = re.split(r"\s+", term.strip())
+        escaped = [re.escape(t) for t in tokens if t]
+        core = r"\s+".join(escaped)
+        out[term] = re.compile(rf"\b{core}\b", re.IGNORECASE)
+    return out
+
+def scan_message(message: str, patterns: Dict[str, Pattern]) -> Tuple[int, Counter]:
+    """
+    Count non-overlapping matches for each term across the message.
+    Returns (total_score, Counter({term: count, ...}))
+    """
+    hits = Counter()
+    for term, patt in patterns.items():
+        count = len(patt.findall(message))
+        if count:
+            hits[term] = count
+    return sum(hits.values()), hits
+
+def rate_spam(score: int) -> str:
+    """Simple score bands you can tweak as needed."""
+    if score <= 2:
+        return "Low likelihood of spam"
+    if score <= 5:
+        return "Moderate likelihood of spam"
+    if score <= 9:
+        return "High likelihood of spam"
+    return "Very high likelihood of spam"
+
+def print_results(score: int, hits: Counter) -> None:
+    print("\n--- Spam Analysis ---")
+    print(f"Spam score: {score}")
+    print(f"Likelihood: {rate_spam(score)}")
+
+    if hits:
+        print("\nTriggers (term : count):")
+        for term, count in sorted(hits.items(), key=lambda x: (-x[1], x[0])):
+            print(f"  - {term} : {count}")
+    else:
+        print("\nNo spam terms were detected.")
+    print("---------------------")
+
+def main() -> None:
+    patterns = build_patterns(SPAM_TERMS)
+
+    print("Paste your email message. Press ENTER on an empty line to finish:\n")
+    lines: List[str] = []
+    while True:
+        try:
+            line = input()
+        except EOFError:
+            break
+        if not line.strip():
+            break
+        lines.append(line)
+
+    message = "\n".join(lines)
+    score, hits = scan_message(message, patterns)
+    print_results(score, hits)
+
+if __name__ == "__main__":
+    main()
