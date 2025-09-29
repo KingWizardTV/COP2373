@@ -1,1 +1,47 @@
+# Darin McPherson
+# 08/31/2025
+# Cinema Ticket Pre-Sale
+# - 2 functions (prompt_tickets, run_presale)
+# - uses input/output
+# - accumulator: buyers count
+# - if statements for validation
+# - loop until sold out
+MAX_TOTAL = 20
+MAX_PER_BUYER = 4
+def prompt_tickets(remaining: int, max_per_buyer: int) -> int:
+"""Prompt one buyer for a valid purchase quantity and return it."""
+limit = min(max_per_buyer, remaining)
+while True: # loop until this buyer enters a valid number
+try:
+qty = int(input(f"How many tickets would you like (1–{limit})? "))
+except ValueError:
+print("Please enter a whole number.")
+continue
+# validations (if statements)
+if qty < 1:
+print("You must buy at least 1 ticket.")
+elif qty > max_per_buyer:
+print(f"You can buy at most {max_per_buyer} tickets per buyer.")
+elif qty > remaining:
+print(f"Only {remaining} tickets remain. Please enter {remaining} or
+less.")
+else:
+return qty # valid
+def run_presale(total: int = MAX_TOTAL, max_per_buyer: int = MAX_PER_BUYER) ->
+None:
+"""Run the ticket selling loop until sold out, then show buyer count."""
+remaining = total
+buyers = 0 # ACCUMULATOR for number of buyers
+print("Welcome to the Cinema Ticket Pre-Sale!")
+while remaining > 0: # loop until sold out
+print(f"\nTickets remaining: {remaining}")
+qty = prompt_tickets(remaining, max_per_buyer)
+remaining -= qty
+buyers += 1
+print(f"Purchase successful: {qty} ticket(s). Tickets remaining:
+{remaining}")
+print("\nSOLD OUT!")
+print(f"Total number of buyers: {buyers}")
+if __name__ == "__main__":
+run_presale()
 
